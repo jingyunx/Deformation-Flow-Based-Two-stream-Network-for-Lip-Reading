@@ -1,0 +1,52 @@
+title = "LipReading PyTorch"
+
+[general]
+usecudnn = true
+usecudnnbenchmark = true
+gpuid = "1,2,3"
+loadpretrainedmodel = true
+random_seed = 55
+pretrainedmodelpath = "epoch16_406_[0.84368-0.80404-0.83004-0.84152]_[-0.70962515--0.77139795--0.80576049--0.78857922]"
+comment = "test"
+
+[input]
+batchsize = 60
+numworkers = 4
+shuffle = true
+
+[gan]
+lr = 0.0001
+beta1 = 0.9
+momentum = 0.9
+
+[model]
+type = "fpa"
+inputdim = 256
+hiddendim = 256
+numclasses = 500
+numlstms = 2
+attention = ""
+
+[training]
+train = true
+epochs = 30
+startepoch = 34
+statsfrequency = 100
+dataset = "/home/share/DATASET/LRW/roi_80_116_175_211_npy"
+learningrate = 0.001
+momentum = 0.9
+weightdecay = 0.003
+datatype = 'image'
+
+
+
+[validation]
+validate = false
+dataset = "/home/share/DATASET/LRW/roi_80_116_175_211_npy"
+saveaccuracy = true
+statsfrequency = 30
+accuracyfilelocation = "accuracy.txt"
+datatype = 'image'
+
+[test]
+test = false
