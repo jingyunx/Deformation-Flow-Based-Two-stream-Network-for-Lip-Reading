@@ -36,7 +36,7 @@ class LRWDataset(Dataset):
                         completeList.append(entry)    
         return  completeList
 
-    def __init__(self, path, set):
+    def __init__(self, directory, set):
         self.set = set 
         self.file_list = self.build_file_list(directory, set)
         print('Total num of samples: ', len(self.file_list))
