@@ -29,7 +29,7 @@ If this work is useful for your research, please cite our work:
 ```
   title={Deformation Flow Based Two-Stream Network for Lip Reading},
   author={Xiao, Jingyun and Yang, Shuang and Zhang, Yuanhang and Shan, Shiguang and Chen, Xilin},
-  booktitle={2020 15th IEEE International Conference on Automatic Face \& Gesture Recognition (FG 2020)},
+  booktitle={2020 15th IEEE International Conference on Automatic Face & Gesture Recognition (FG 2020)},
   year={2020},
   organization={IEEE}
 }
