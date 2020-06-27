@@ -3,7 +3,7 @@
 
 ## Introduction   
 
-This is the implementation of the proposed method in [Deformation Flow Based Two-Stream Network for Lip Reading](). Our paper can be found [here](https://arxiv.org/pdf/2003.05709.pdf).
+This is the implementation of the proposed method in "Deformation Flow Based Two-Stream Network for Lip Reading". Our paper can be found [here](https://arxiv.org/pdf/2003.05709.pdf).
 
 ## Dependencies
 * Python 3.5+
