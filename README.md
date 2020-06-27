@@ -12,7 +12,7 @@ This is the implementation of the proposed method in "Deformation Flow Based Two
 ## Dataset
 This model is trained on LRW (grayscale) and LRW-1000 (RGB).
 ## Training And Testing
-You can train or test the model as follow:
+You can train or test the model as follows:
 ```
 python train.py options.toml
 ```
