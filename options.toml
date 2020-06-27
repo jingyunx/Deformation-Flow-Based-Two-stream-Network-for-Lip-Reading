@@ -6,8 +6,8 @@ usecudnnbenchmark = true
 gpuid = "1,2,3"
 loadpretrainedmodel = true
 random_seed = 55
-pretrainedmodelpath = "epoch16_406_[0.84368-0.80404-0.83004-0.84152]_[-0.70962515--0.77139795--0.80576049--0.78857922]"
-comment = "test"
+pretrainedmodelpath = "[0.84368-0.80404-0.83004-0.84152]"
+comment = ""
 
 [input]
 batchsize = 60
