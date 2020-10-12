@@ -45,7 +45,7 @@ class LRWDataset(Dataset):
         path = self.file_list[idx][1]  
         inputs = load_file(path)
         if(self.set == 'train'):
-            batch_img = RandomCrop(inputs, (88, 88))
+            inputs = RandomCrop(inputs, (88, 88))
         batch_img = inputs
         label = self.file_list[idx][0]
         vid_tensor =  torch.FloatTensor(batch_img[:, np.newaxis,...])
