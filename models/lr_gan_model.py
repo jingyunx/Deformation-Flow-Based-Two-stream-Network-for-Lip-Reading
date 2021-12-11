@@ -73,7 +73,43 @@ class LRGANModel(BaseModel):
             self.load_networks(self.weights_suffix)
         else:
             self.weights_suffix = ''
+
         
+        params = [
+            {"params": self.Encoder_fab.parameters(), "lr": opt["gan"]["lr"]},
+            {"params": self.FAB.parameters(), "lr": opt["gan"]["lr"] }
+        ]
+        self.optimizer_DFN = torch.optim.Adam(params,
+                                                 betas=(opt["gan"]["beta1"], 0.999))
+
+        params = [
+            {"params": self.Encoder_fab.parameters(), "lr": opt["gan"]["lr"]},
+            # {"params": self.FAB.parameters(), "lr": opt["gan"]["lr"] },
+
+            {"params": self.Encoder_W_real.parameters(), "lr": opt["gan"]["lr"]},
+            {"params": self.Classifier_W_real.parameters(), "lr": opt["gan"]["lr"]*0.1 },
+
+            {"params": self.Encoder_W_df.parameters(), "lr": opt["gan"]["lr"]},
+            {"params": self.Classifier_W_df.parameters(), "lr": opt["gan"]["lr"] *0.1}
+        ]
+        self.optimizer_fusion = torch.optim.Adam(params,
+                                                 betas=(opt["gan"]["beta1"], 0.999))
+        
+        params = [
+            {"params": self.Encoder_W_real.parameters(), "lr": opt["gan"]["lr"]},
+            {"params": self.Classifier_W_real.parameters(), "lr": opt["gan"]["lr"]*0.1 },
+        ]
+        self.optimizer_baseline = torch.optim.Adam(params,
+                                                 betas=(opt["gan"]["beta1"], 0.999))
+
+        params = [
+            # {"params": self.Encoder_fab.parameters(), "lr": opt["gan"]["lr"]},
+            {"params": self.Encoder_W_df.parameters(), "lr": opt["gan"]["lr"]},
+            {"params": self.Classifier_W_df.parameters(), "lr": opt["gan"]["lr"] *0.1}
+        ]
+        self.optimizer_df = torch.optim.Adam(params,
+                                                 betas=(opt["gan"]["beta1"], 0.999))
+
         ####  Loss
         self.criterion_LR = nn.CrossEntropyLoss()
         self.criterion_NLL = nn.NLLLoss().cuda()
@@ -137,14 +173,9 @@ class LRGANModel(BaseModel):
         self.target_img =  input['target_img'].cuda()
     
     def train_DFN(self):
-        params = [
-            {"params": self.Encoder_fab.parameters(), "lr": opt["gan"]["lr"]},
-            {"params": self.FAB.parameters(), "lr": opt["gan"]["lr"] }
-        ]
-        self.optimizer_ALL = torch.optim.Adam(params,
-                                                 betas=(opt["gan"]["beta1"], 0.999))
+        
 
-        self.optimizer_ALL.zero_grad()
+        self.optimizer_DFN.zero_grad()
         batch_size = self.input.size(0)
         source_f = random.randint(0, 22)
         self.source_img = self.input[:, source_f, :, :, :]
@@ -162,24 +193,13 @@ class LRGANModel(BaseModel):
         self.loss_ALL = self.loss_recon_1
         self.loss_ALL.backward()
         print('recon_1: {:.5f}'.format(self.loss_recon_1.data))
-        self.optimizer_ALL.step()
+        self.optimizer_DFN.step()
 
     def train_fusion(self):
-        params = [
-            {"params": self.Encoder_fab.parameters(), "lr": opt["gan"]["lr"]},
-            # {"params": self.FAB.parameters(), "lr": opt["gan"]["lr"] },
-
-            {"params": self.Encoder_W_real.parameters(), "lr": opt["gan"]["lr"]},
-            {"params": self.Classifier_W_real.parameters(), "lr": opt["gan"]["lr"]*0.1 },
-
-            {"params": self.Encoder_W_df.parameters(), "lr": opt["gan"]["lr"]},
-            {"params": self.Classifier_W_df.parameters(), "lr": opt["gan"]["lr"] *0.1}
-        ]
-        self.optimizer_ALL = torch.optim.Adam(params,
-                                                 betas=(opt["gan"]["beta1"], 0.999))
+        
         self.set_requires_grad(self.FAB, False)
 
-        self.optimizer_ALL.zero_grad()
+        self.optimizer_fusion.zero_grad()
         batch_size = self.input.size(0)
         ew = self.Encoder_fab(self.input)
         ff_ew = torch.cat([ew[:, 1:29, :], ew[:, 28:29, :] ], 1)
@@ -213,7 +233,7 @@ class LRGANModel(BaseModel):
 
         self.loss_ALL =  self.loss_LR_df + self.loss_LR_real + self.loss_KD * 10
         self.loss_ALL.backward()
-        self.optimizer_ALL.step()
+        self.optimizer_fusion.step()
 
     def validate_fusion(self):
         batch_size = self.input.size(0)
@@ -241,14 +261,9 @@ class LRGANModel(BaseModel):
         return np.array(cnt), np.array(loss)
     
     def train_baseline(self):
-        params = [
-            {"params": self.Encoder_W_real.parameters(), "lr": opt["gan"]["lr"]},
-            {"params": self.Classifier_W_real.parameters(), "lr": opt["gan"]["lr"]*0.1 },
-        ]
-        self.optimizer_ALL = torch.optim.Adam(params,
-                                                 betas=(opt["gan"]["beta1"], 0.999))
+        
 
-        self.optimizer_ALL.zero_grad()
+        self.optimizer_baseline.zero_grad()
         batch_size = self.input.size(0)
         ew_real = self.Encoder_W_real(self.input)
         sf_real, fc_real = self.Classifier_W_real(ew_real)
@@ -256,7 +271,7 @@ class LRGANModel(BaseModel):
         print('LR_real: {:.5f}'.format(self.loss_LR_real.data))
         self.loss_ALL = self.loss_LR_real
         self.loss_ALL.backward()
-        self.optimizer_ALL.step()
+        self.optimizer_baseline.step()
     
     def validate_baseline(self):
         batch_size = self.input.size(0)
@@ -272,16 +287,10 @@ class LRGANModel(BaseModel):
         return cnt, loss
 
     def train_df(self):
-        params = [
-            # {"params": self.Encoder_fab.parameters(), "lr": opt["gan"]["lr"]},
-            {"params": self.Encoder_W_df.parameters(), "lr": opt["gan"]["lr"]},
-            {"params": self.Classifier_W_df.parameters(), "lr": opt["gan"]["lr"] *0.1}
-        ]
-        self.optimizer_ALL = torch.optim.Adam(params,
-                                                 betas=(opt["gan"]["beta1"], 0.999))
+        
         self.set_requires_grad(self.FAB, False)
 
-        self.optimizer_ALL.zero_grad()
+        self.optimizer_df.zero_grad()
         batch_size = self.input.size(0)
         ew = self.Encoder_fab(self.input)
 
@@ -314,7 +323,7 @@ class LRGANModel(BaseModel):
         print('LR_df: {:.5f}'.format(self.loss_LR_df.data))
         self.loss_ALL =self.loss_LR_df
         self.loss_ALL.backward()
-        self.optimizer_ALL.step()
+        self.optimizer_df.step()
 
     def validate_df(self):
         batch_size = self.input.size(0)
